@@ -1,6 +1,6 @@
 # Job Application Tracker
 
-[![CI](https://github.com/BrendanReyes/job-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/BrendanReyes/job-tracker/actions/workflows/ci.yml)
+[![CI](https://github.com/Breyes05/job-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/Breyes05/job-tracker/actions/workflows/ci.yml)
 
 A REST API for tracking job applications: where you applied, what stage you're at, and how your search is going.
 
