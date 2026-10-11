@@ -1,5 +1,7 @@
 # Job Application Tracker
 
+[![CI](https://github.com/BrendanReyes/job-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/BrendanReyes/job-tracker/actions/workflows/ci.yml)
+
 A REST API for tracking job applications: where you applied, what stage you're at, and how your search is going.
 
 Built with **Python, FastAPI, SQLAlchemy, and SQLite**, tested with **pytest**.
@@ -20,10 +22,17 @@ uvicorn app.main:app --reload
 ```
 Then open http://127.0.0.1:8000/docs to try the API in your browser.
 
+### Or run with Docker
+```bash
+docker build -t job-tracker .
+docker run -p 8000:8000 job-tracker
+```
+
 ## Running tests
 ```bash
 pytest
 ```
+Tests also run automatically on every push and pull request via GitHub Actions, which then builds the Docker image and checks that the container starts and responds on `/health`.
 
 ## API overview
 | Method | Endpoint | Description |
@@ -53,7 +62,7 @@ tests/
 - [x] Core CRUD API with filtering, sorting, pagination
 - [x] Automated tests
 - [ ] User accounts with JWT authentication
-- [ ] Docker + GitHub Actions CI
+- [x] Docker + GitHub Actions CI
 - [ ] PostgreSQL + Alembic migrations
 - [ ] Cloud deployment
 - [ ] Stats endpoint (response rate, applications per week)

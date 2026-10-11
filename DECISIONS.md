@@ -50,3 +50,9 @@ Why the project is built the way it is. Each entry covers what was chosen, what 
 ## 9. Indexes on `company` and `status`
 **Why:** Those are the columns we filter on. An index lets the database find matching rows without scanning the whole table.
 **Trade-off:** Indexes make writes slightly slower and take extra storage.
+
+## 10. Docker + GitHub Actions for CI
+**Chose:** A Dockerfile and a GitHub Actions workflow that runs the tests, builds the image, and starts the container to check `/health`
+**Alternatives:** Running tests only locally, other CI services (CircleCI, Travis)
+**Why:** Docker packages the app with its exact Python version and dependencies, so it runs the same on a laptop, in CI, and on a cloud host. CI runs the tests on every push, so a broken change shows up immediately instead of at deploy time. GitHub Actions is built into GitHub and free for public repos. The Docker image is only built after the tests pass, and the smoke test catches problems that unit tests miss, like a missing file in the image or a bad startup command.
+**Trade-off:** The image runs as a non-root user and copies dependencies before code so builds are cached, which makes the Dockerfile a little longer than the minimum.
