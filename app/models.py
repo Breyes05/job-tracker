@@ -33,7 +33,7 @@ class Application(Base):
         DateTime, server_default=func.now(), onupdate=func.now()
     )
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
-    owner: Mapped[list["User"]] = relationship(back_populates="applications")
+    owner: Mapped["User"] = relationship(back_populates="applications")
 
 class User(Base):
     __tablename__ = "users"
