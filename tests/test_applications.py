@@ -1,6 +1,9 @@
-def make_app(client, **overrides):
+from tests.conftest import auth_headers
+
+
+def make_app(client, headers=None, **overrides):
     payload = {"company": "Acme", "role": "SWE Intern", **overrides}
-    response = client.post("/applications", json=payload)
+    response = client.post("/applications", json=payload, headers=headers)
     assert response.status_code == 201
     return response.json()
 
@@ -95,3 +98,60 @@ def test_job_url_is_validated_and_stored(auth_client):
         "/applications", json={"company": "Acme", "role": "SWE", "job_url": "not a url"}
     )
     assert bad.status_code == 422
+
+
+# cross-user access checks
+def test_list_only_returns_own_applications(client):
+    alice = auth_headers(client, email="alice@example.com")
+    bob = auth_headers(client, email="bob@example.com")
+
+    make_app(client, headers=alice, company="OpenAI")
+    make_app(client, headers=bob, company="Anthropic")
+
+    alice_list = client.get("/applications", headers=alice).json()
+    bob_list = client.get("/applications", headers=bob).json()
+
+    assert [a["company"] for a in alice_list] == ["OpenAI"]
+    assert [a["company"] for a in bob_list] == ["Anthropic"]
+
+
+def test_cannot_get_other_users_application(client):
+    alice = auth_headers(client, email="alice@example.com")
+    bob = auth_headers(client, email="bob@example.com")
+
+    alice_app = make_app(client, headers=alice, company="OpenAI")
+    bad = client.get(f"/applications/{alice_app['id']}", headers=bob)
+
+    assert bad.status_code == 404
+
+
+def test_cannot_update_other_users(client):
+    alice = auth_headers(client, email="alice@example.com")
+    bob = auth_headers(client, email="bob@example.com")
+
+    alice_app = make_app(client, headers=alice, company="OpenAI")
+    bad = client.patch(f"/applications/{alice_app['id']}", json={"status": "offer"}, headers=bob) 
+    assert bad.status_code == 404
+
+    unchanged = client.get(f"/applications/{alice_app['id']}", headers=alice).json()
+    assert unchanged["status"] == "applied"
+
+
+def test_cannot_delete_other_users_application(client):
+    alice = auth_headers(client, email="alice@example.com")
+    bob = auth_headers(client, email="bob@example.com")
+    
+    alice_app = make_app(client, headers=alice, company="OpenAI")
+    bad = client.delete(f"/applications/{alice_app['id']}", headers=bob)
+    assert bad.status_code == 404
+
+    unchanged = client.get(f"/applications/{alice_app['id']}", headers=alice)
+    assert unchanged.status_code == 200
+
+def test_applications_require_login(client):
+    assert client.get("/applications").status_code == 401
+    response = client.post("/applications", json={"company": "Acme", "role": "SWE Intern"})
+    assert response.status_code == 401
+    assert client.get("/applications/1").status_code == 401
+    assert client.patch("/applications/1", json={"status": "offer"}).status_code == 401
+    assert client.delete("/applications/1").status_code == 401
