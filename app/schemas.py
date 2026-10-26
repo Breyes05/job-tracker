@@ -7,7 +7,7 @@ bad input (missing fields, wrong types) with a clear 422 error automatically.
 
 from datetime import date, datetime
 
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, EmailStr
 
 from app.models import Status
 
@@ -46,3 +46,27 @@ class ApplicationRead(ApplicationBase):
     job_url: str | None = None
     created_at: datetime
     updated_at: datetime
+
+
+class UserBase(BaseModel):
+    email: EmailStr
+
+
+class UserCreate(UserBase):
+    """What a client sends to create a user."""
+    password: str = Field(min_length=8, max_length=72)
+
+
+class UserRead(UserBase):
+    """What API sends back."""
+
+    # For pydantic behavior on SQLAlchemy Object
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    created_at: datetime
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"

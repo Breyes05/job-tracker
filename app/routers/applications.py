@@ -6,8 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.auth import get_current_user
 from app.database import get_db
-from app.models import Application, Status
+from app.models import Application, Status, User
 from app.schemas import ApplicationCreate, ApplicationRead, ApplicationUpdate
 
 router = APIRouter(prefix="/applications", tags=["applications"])
@@ -26,16 +27,20 @@ def to_db_values(data: dict) -> dict:
     return data
 
 
-def get_application_or_404(application_id: int, db: Session) -> Application:
+def get_application_or_404(application_id: int, db: Session, user: User) -> Application:
     application = db.get(Application, application_id)
-    if application is None:
+    if application is None or application.user_id != user.id:
         raise HTTPException(status_code=404, detail="Application not found")
     return application
 
 
 @router.post("", response_model=ApplicationRead, status_code=status.HTTP_201_CREATED)
-def create_application(payload: ApplicationCreate, db: Session = Depends(get_db)):
-    application = Application(**to_db_values(payload.model_dump()))
+def create_application(
+    payload: ApplicationCreate, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
+    application = Application(**to_db_values(payload.model_dump()), user_id=current_user.id)
     db.add(application)
     db.commit()
     db.refresh(application)
@@ -51,8 +56,9 @@ def list_applications(
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    query = select(Application)
+    query = select(Application).where(Application.user_id == current_user.id)
     if status is not None:
         query = query.where(Application.status == status)
     if company:
@@ -65,15 +71,22 @@ def list_applications(
 
 
 @router.get("/{application_id}", response_model=ApplicationRead)
-def get_application(application_id: int, db: Session = Depends(get_db)):
-    return get_application_or_404(application_id, db)
+def get_application(
+    application_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
+    return get_application_or_404(application_id, db, current_user)
 
 
 @router.patch("/{application_id}", response_model=ApplicationRead)
 def update_application(
-    application_id: int, payload: ApplicationUpdate, db: Session = Depends(get_db)
+    application_id: int, 
+    payload: ApplicationUpdate, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
 ):
-    application = get_application_or_404(application_id, db)
+    application = get_application_or_404(application_id, db, current_user)
     # exclude_unset: only touch fields the client actually sent
     updates = to_db_values(payload.model_dump(exclude_unset=True))
     for field, value in updates.items():
@@ -84,7 +97,11 @@ def update_application(
 
 
 @router.delete("/{application_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_application(application_id: int, db: Session = Depends(get_db)):
-    application = get_application_or_404(application_id, db)
+def delete_application(
+    application_id: int, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    application = get_application_or_404(application_id, db, current_user)
     db.delete(application)
     db.commit()

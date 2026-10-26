@@ -3,8 +3,8 @@
 import enum
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, Enum, String, Text, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Date, DateTime, Enum, String, Text, func, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
@@ -32,3 +32,16 @@ class Application(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now()
     )
+    # maps to users table id column
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    # relationship is a python shortcut
+    owner: Mapped["User"] = relationship(back_populates="applications")
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(unique=True, index=True)
+    hashed_password: Mapped[str] = mapped_column()
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    applications: Mapped[list["Application"]] = relationship(back_populates="owner")

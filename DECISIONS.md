@@ -24,7 +24,7 @@ Why the project is built the way it is. Each entry covers what was chosen, what 
 
 ## 4. Separate Pydantic schemas from database models
 **Chose:** `schemas.py` (what the API accepts and returns) separate from `models.py` (what's stored)
-**Why:** Clients shouldn't control fields like `id` or `created_at`, and later on we'll store things (like password hashes) that must never be sent back. Separate schemas make that explicit. Pydantic also rejects bad input automatically with a `422` error.
+**Why:** Clients shouldn't control fields like `id` or `created_at`, and the database stores things (like password hashes) that must never be sent back. Separate schemas make that explicit. Pydantic also rejects bad input automatically with a `422` error.
 **Trade-off:** Some fields are defined twice.
 
 ## 5. PATCH instead of PUT for updates
@@ -56,3 +56,21 @@ Why the project is built the way it is. Each entry covers what was chosen, what 
 **Alternatives:** Running tests only locally, other CI services (CircleCI, Travis)
 **Why:** Docker packages the app with its exact Python version and dependencies, so it runs the same on a laptop, in CI, and on a cloud host. CI runs the tests on every push, so a broken change shows up immediately instead of at deploy time. GitHub Actions is built into GitHub and free for public repos. The Docker image is only built after the tests pass, and the smoke test catches problems that unit tests miss, like a missing file in the image or a bad startup command.
 **Trade-off:** The image runs as a non-root user and copies dependencies before code so builds are cached, which makes the Dockerfile a little longer than the minimum.
+
+## 11. JWT for authentication
+**Chose:** JSON Web Tokens (JWT), signed with HS256 and a `SECRET_KEY` read from the environment, expiring after 30 minutes
+**Alternatives:** Session-based auth (a sessions table and a session ID cookie)
+**Why:** A JWT carries the user's ID (`sub`) and expiration (`exp`) and is signed with a key only the server knows, so the server can verify it without storing anything or looking it up. That's what makes it stateless, and it means any server with the key can check a token. FastAPI's `OAuth2PasswordBearer` also wires it into the Authorize button in `/docs`. The token payload is readable by anyone, so it only contains the user ID and expiration, never anything sensitive.
+**Trade-off:** Because nothing is stored, a token can't be revoked before it expires, even after logout or a password change. A stolen token works until then, so the expiration is kept short (30 minutes), and production should run over HTTPS. Sessions could be revoked instantly, but they need a database lookup on every request.
+
+## 12. bcrypt for password hashing
+**Chose:** bcrypt, with a random salt per password
+**Alternatives:** A fast hash like SHA-256, or storing passwords as plain text
+**Why:** Hashing is one-way, so a leaked database doesn't reveal passwords. bcrypt adds a random salt (stored inside the hash), so two users with the same password get different hashes and precomputed rainbow tables don't work. It's also deliberately slow, which makes guessing passwords by brute force expensive. Fast hashes like SHA-256 are built for speed, which helps attackers.
+**Trade-off:** Hashing takes noticeable time, which slows down login and the test suite slightly. bcrypt also only accepts passwords up to 72 bytes, so the schema limits passwords to 72 characters to return a clean `422` instead of a server error.
+
+## 13. 404 instead of 403 for other users' applications
+**Chose:** Return `404 Not Found` when a user asks for an application that belongs to someone else
+**Alternatives:** `403 Forbidden`
+**Why:** A `403` confirms that the application ID exists, which leaks information about other users' data. A `404` gives the same response whether the ID doesn't exist or belongs to someone else, so other users' data is effectively invisible. This guards against IDOR (insecure direct object reference), where someone guesses IDs to reach data that isn't theirs. The ownership check lives in one helper (`get_application_or_404`), so get, update, and delete all share it, and tests check that the data really is unchanged afterward.
+**Trade-off:** The error is less specific, which can make debugging a little harder for a legitimate user who mistypes an ID.
