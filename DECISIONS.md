@@ -10,11 +10,11 @@ Why the project is built the way it is. Each entry covers what was chosen, what 
 **Why:** FastAPI uses Python type hints to validate requests and generate interactive API docs (`/docs`) automatically, so there's less boilerplate. Flask is simpler but needs extra libraries for validation and docs. Django is "batteries included" (admin panel, templates, ORM), which is more than a pure API needs.
 **Trade-off:** FastAPI is newer than Flask and Django, so there are fewer tutorials and plugins.
 
-## 2. SQLite for now, PostgreSQL later
-**Chose:** SQLite during development
+## 2. SQLite first, then PostgreSQL
+**Chose:** SQLite during early development, PostgreSQL once the app was deployed
 **Alternatives:** PostgreSQL from the start, MongoDB
-**Why:** SQLite is a single file with nothing to install or run, so development starts quickly. The data is relational (users have many applications) and fits a SQL database well, which is why MongoDB wasn't chosen.
-**Trade-off:** SQLite handles many concurrent writes poorly, so it isn't suitable for production with many users. Because the code goes through SQLAlchemy, switching to Postgres means changing one setting (`DATABASE_URL`).
+**Why:** SQLite is a single file with nothing to install or run, so development started quickly. The data is relational (users have many applications) and fits a SQL database well, which is why MongoDB wasn't chosen.
+**Trade-off:** SQLite handles many concurrent writes poorly and lives on the server's disk, which hosts like Render wipe on every deploy, so it isn't suitable for production. Because the code goes through SQLAlchemy and reads `DATABASE_URL` from the environment, the switch to Postgres needed no application code changes, just a new URL and a driver (`psycopg`). Tests still use in-memory SQLite for speed.
 
 ## 3. SQLAlchemy ORM instead of raw SQL
 **Chose:** SQLAlchemy ORM
@@ -74,3 +74,21 @@ Why the project is built the way it is. Each entry covers what was chosen, what 
 **Alternatives:** `403 Forbidden`
 **Why:** A `403` confirms that the application ID exists, which leaks information about other users' data. A `404` gives the same response whether the ID doesn't exist or belongs to someone else, so other users' data is effectively invisible. This guards against IDOR (insecure direct object reference), where someone guesses IDs to reach data that isn't theirs. The ownership check lives in one helper (`get_application_or_404`), so get, update, and delete all share it, and tests check that the data really is unchanged afterward.
 **Trade-off:** The error is less specific, which can make debugging a little harder for a legitimate user who mistypes an ID.
+
+## 14. Alembic migrations instead of `create_all`
+**Chose:** Alembic, with one migration file per schema change, generated with `--autogenerate` and reviewed before applying
+**Alternatives:** `Base.metadata.create_all()` on startup, writing SQL scripts by hand
+**Why:** `create_all` only creates missing tables; it silently ignores changes to existing ones (this came up when `user_id` was added in the auth work, and the only fix was deleting the database). With real users, deleting the database isn't an option. Alembic records each change as an `upgrade()`/`downgrade()` script in git and tracks which ones a database has applied in an `alembic_version` table, so only new changes run.
+**Trade-off:** Every model change now needs a migration, and autogenerate isn't perfect: for example, it didn't drop the Postgres `status` enum type in `downgrade()`, which had to be added by hand. Generated migrations always need to be read before they're applied. Tests still build their in-memory database with `create_all`, which is fine for throwaway databases.
+
+## 15. Neon for the database, Render for the API
+**Chose:** A Neon serverless Postgres database and a Render web service built from the Dockerfile
+**Alternatives:** Render's own Postgres, Supabase, Railway, Fly.io
+**Why:** Render deploys straight from the Dockerfile on every merge to `main`, provides HTTPS automatically, and has a free tier. Render's free Postgres databases expire after 30 days, which would delete real users' data, so the database lives on Neon, whose free tier doesn't expire. Keeping the database separate from the app host is also common in production. The connection uses `sslmode=require`, so traffic between Render and Neon is encrypted.
+**Trade-off:** Render's free tier spins the API down after about 15 minutes without traffic, so the next request takes 30 to 60 seconds. Two providers means two dashboards and two sets of settings. A paid tier would remove the cold starts if the app gets regular users.
+
+## 16. Run migrations when the container starts
+**Chose:** The Docker image runs `alembic upgrade head && uvicorn ...` on every start, and Docker Compose waits for Postgres to pass a health check before starting the API
+**Alternatives:** Running migrations by hand before each deploy, a separate pre-deploy step
+**Why:** Nobody has to remember to migrate. Every deploy, local or on Render, brings the database up to date before the server accepts requests, and `upgrade head` does nothing when there are no new migrations, so it's safe to run every time. The `&&` means the server doesn't start if a migration fails, so a broken schema fails loudly instead of serving errors. The port comes from `${PORT:-8000}`, so the same image works locally and on Render. CI starts the same Compose stack and registers a user, which only succeeds if the migrations ran against Postgres.
+**Trade-off:** With several instances running at once, they'd all try to migrate at the same time. At one instance that doesn't matter; at scale, migrations would move to a separate deploy step.
