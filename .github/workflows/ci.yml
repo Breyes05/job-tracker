@@ -23,14 +23,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build image
-        run: docker build -t job-tracker .
-      - name: Smoke test the container
+      - name: Start Postgres and the API
+        run: docker compose up -d --build
+      - name: Smoke test the running stack
         run: |
-          docker run -d -p 8000:8000 --name app job-tracker
-          for i in $(seq 1 15); do
-            curl -sf http://localhost:8000/health && exit 0
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/health && break
             sleep 1
           done
-          docker logs app
-          exit 1
+          # Registering writes to Postgres, so this fails if migrations didn't run.
+          curl -sf -X POST http://localhost:8000/auth/register \
+            -H "Content-Type: application/json" \
+            -d '{"email": "ci@example.com", "password": "password123"}'
+      - name: Show logs if anything failed
+        if: failure()
+        run: docker compose logs
