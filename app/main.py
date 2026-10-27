@@ -2,12 +2,8 @@
 
 from fastapi import FastAPI
 
-from app.database import Base, engine
 from app.routers import applications, auth
 
-# Create tables on startup. Fine for now; we'll switch to Alembic migrations
-# in a later phase so schema changes don't require wiping the database.
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Job Application Tracker",
