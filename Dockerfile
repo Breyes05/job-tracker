@@ -14,9 +14,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
 
+COPY alembic.ini .
+COPY migrations ./migrations
+
 # Run as a non-root user so a bug in the app can't modify the container.
 RUN useradd --create-home appuser && chown -R appuser /code
 USER appuser
 
 EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Apply any new migrations, then start the server. Hosts like Render set $PORT.
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+
