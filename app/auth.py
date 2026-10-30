@@ -17,7 +17,7 @@ from app.models import User
 # Prod must use a real SECRET_KEY as an env var.
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-me-not-for-production")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_DAYS = 7
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
@@ -38,7 +38,7 @@ def verify_password(password: str, hashed: str) -> bool:
 
 def create_access_token(user_id: int) -> str:
     sub = str(user_id)
-    exp = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    exp = datetime.now(timezone.utc) + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
     payload = {"sub": sub, "exp": exp}
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 

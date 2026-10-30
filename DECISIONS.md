@@ -58,10 +58,12 @@ Why the project is built the way it is. Each entry covers what was chosen, what 
 **Trade-off:** The image runs as a non-root user and copies dependencies before code so builds are cached, which makes the Dockerfile a little longer than the minimum.
 
 ## 11. JWT for authentication
-**Chose:** JSON Web Tokens (JWT), signed with HS256 and a `SECRET_KEY` read from the environment, expiring after 30 minutes
+**Chose:** JSON Web Tokens (JWT), signed with HS256 and a `SECRET_KEY` read from the environment, expiring after 7 days
 **Alternatives:** Session-based auth (a sessions table and a session ID cookie)
 **Why:** A JWT carries the user's ID (`sub`) and expiration (`exp`) and is signed with a key only the server knows, so the server can verify it without storing anything or looking it up. That's what makes it stateless, and it means any server with the key can check a token. FastAPI's `OAuth2PasswordBearer` also wires it into the Authorize button in `/docs`. The token payload is readable by anyone, so it only contains the user ID and expiration, never anything sensitive.
-**Trade-off:** Because nothing is stored, a token can't be revoked before it expires, even after logout or a password change. A stolen token works until then, so the expiration is kept short (30 minutes), and production should run over HTTPS. Sessions could be revoked instantly, but they need a database lookup on every request.
+**Trade-off:** Because nothing is stored, a token can't be revoked before it expires, even after logout or a password change, and a stolen token works until then. Sessions could be revoked instantly, but they need a database lookup on every request.
+
+The expiration started at 30 minutes, which was fine for the API alone but logged frontend users out in the middle of using the app. It's now 7 days, because the data is low-sensitivity (job applications, not payments or health records), all traffic runs over HTTPS on Render and Vercel, and React escapes rendered content, which lowers the risk of a script stealing a token from browser storage. If a leak is ever suspected, changing `SECRET_KEY` on Render invalidates every token at once. The better long-term design is a short-lived access token plus a refresh token, which keeps users logged in without long-lived access tokens, at the cost of another endpoint and more frontend logic.
 
 ## 12. bcrypt for password hashing
 **Chose:** bcrypt, with a random salt per password
