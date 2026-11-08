@@ -187,19 +187,69 @@ function MockList() {
   )
 }
 
-function MockStatusMenu() {
+// A looping animation of the main interaction: a cursor drags a card from
+// Applied to Interviewing, the badge changes, and both column counts update.
+function DragDemo() {
   return (
-    <div className="mock-panel mock-menu-panel" aria-hidden="true">
-      <div className="mock-card mock-card-static">
+    <div className="drag-demo" aria-hidden="true">
+      <div className="drag-col drag-col-1">
+        <div className="drag-col-header">
+          <span className="board-dot status-applied" />
+          Applied
+          <span className="drag-count">
+            <span className="drag-count-before">3</span>
+            <span className="drag-count-after">2</span>
+          </span>
+        </div>
+      </div>
+      <div className="drag-col drag-col-2">
+        <div className="drag-col-header">
+          <span className="board-dot status-interviewing" />
+          Interviewing
+          <span className="drag-count">
+            <span className="drag-count-before">1</span>
+            <span className="drag-count-after">2</span>
+          </span>
+        </div>
+      </div>
+
+      {/* Where the card came from, and where it's about to land */}
+      <div className="drag-slot drag-slot-origin" />
+      <div className="drag-slot drag-slot-target" />
+
+      <div className="drag-card drag-static drag-c1-s2">
+        <span className="mock-company">Globex</span>
+        <span className="mock-role">Backend Intern</span>
+      </div>
+      <div className="drag-card drag-static drag-c1-s3">
+        <span className="mock-company">Umbrella</span>
+        <span className="mock-role">Data Engineering Intern</span>
+      </div>
+      <div className="drag-card drag-static drag-c2-s1">
         <span className="mock-company">Initech</span>
         <span className="mock-role">SWE Intern</span>
       </div>
-      <div className="mock-menu">
-        <span>Applied</span>
-        <span className="is-on">Interviewing</span>
-        <span>Offer</span>
-        <span>Rejected</span>
+
+      <div className="drag-mover">
+        <div className="drag-card drag-moving">
+          <span className="mock-company">Acme Corp</span>
+          <span className="mock-role">Software Engineering Intern</span>
+          <span className="mock-badge-swap drag-badges">
+            <span className="status-badge status-applied">Applied</span>
+            <span className="status-badge status-interviewing">Interviewing</span>
+          </span>
+        </div>
       </div>
+
+      <svg className="drag-cursor" width="22" height="22" viewBox="0 0 24 24">
+        <path
+          d="M5 3l14 8-6.5 1.5L9 19 5 3z"
+          fill="#0f172a"
+          stroke="#ffffff"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+      </svg>
     </div>
   )
 }
@@ -281,7 +331,7 @@ export default function LandingPage() {
               and the counts update right away.
             </p>
           </div>
-          <MockStatusMenu />
+          <DragDemo />
         </section>
 
         <section className="landing-section">
