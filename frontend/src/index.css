@@ -1080,6 +1080,28 @@ textarea[aria-invalid='true'] {
   color: var(--muted);
   margin-bottom: 24px;
 }
+.landing-eyebrow {
+  overflow: hidden;
+}
+.landing-eyebrow-text {
+  display: inline-block;
+  animation: eyebrow-in 0.45s ease-out;
+}
+@keyframes eyebrow-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-eyebrow-text {
+    animation: none;
+  }
+}
 .landing-eyebrow::before {
   content: '';
   width: 6px;

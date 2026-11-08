@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 
 // Everything on this page is static. The boards and cards are illustrations
@@ -187,6 +188,33 @@ function MockList() {
   )
 }
 
+// The pill above the headline cycles through who the app is for.
+const EYEBROW_MESSAGES = [
+  'Free for students · Built for internship season',
+  'New grads · Keep every offer in one place',
+  'Switching careers? · Track every lead',
+  'Free for everyone · No ads, no credit card',
+]
+const EYEBROW_INTERVAL_MS = 3500
+
+function RotatingEyebrow() {
+  const [index, setIndex] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => setIndex((i) => (i + 1) % EYEBROW_MESSAGES.length), EYEBROW_INTERVAL_MS)
+    return () => clearInterval(timer)
+  }, [])
+
+  return (
+    <span className="landing-eyebrow">
+      {/* The key change remounts the text, which replays the slide-in animation. */}
+      <span key={index} className="landing-eyebrow-text">
+        {EYEBROW_MESSAGES[index]}
+      </span>
+    </span>
+  )
+}
+
 // A looping animation of the main interaction: a cursor drags a card from
 // Applied to Interviewing, the badge changes, and both column counts update.
 function DragDemo() {
@@ -271,7 +299,7 @@ export default function LandingPage() {
 
       <main>
         <section className="landing-hero">
-          <span className="landing-eyebrow">Free for students · Built for internship season</span>
+          <RotatingEyebrow />
           <h1>
             Your job search, <span className="landing-highlight">finally organized</span>
           </h1>
