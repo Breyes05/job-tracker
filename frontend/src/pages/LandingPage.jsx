@@ -37,24 +37,6 @@ const STEPS = [
   { title: 'Move it forward', text: 'When you hear back, drag the card to the next stage. Your board updates instantly.' },
 ]
 
-const SMALL_FEATURES = [
-  {
-    icon: 'phone',
-    title: 'Works on your phone',
-    text: 'Update a status between classes. On small screens, the board scrolls and every card has a status menu.',
-  },
-  {
-    icon: 'lock',
-    title: 'Private by default',
-    text: 'Each account only sees its own applications. Passwords are hashed with bcrypt and never stored.',
-  },
-  {
-    icon: 'bolt',
-    title: 'Fast to update',
-    text: 'Status changes save in the background, so the board never makes you wait.',
-  },
-]
-
 const FAQS = [
   {
     question: 'Is it free?',
@@ -325,7 +307,7 @@ export default function LandingPage() {
         <section className="landing-section" aria-labelledby="how-it-works">
           <p className="landing-kicker">How it works</p>
           <h2 id="how-it-works" className="landing-section-title">
-            Three steps, then it just keeps up with you
+            Three steps, then it <span className="landing-mark">just keeps up with you</span>
           </h2>
           <ol className="landing-steps">
             {STEPS.map(({ title, text }, index) => (
@@ -341,7 +323,9 @@ export default function LandingPage() {
         <section className="landing-section landing-feature-row">
           <div className="landing-feature-copy">
             <p className="landing-kicker">Filters and search</p>
-            <h2 className="landing-section-title">Find any application in a second</h2>
+            <h2 className="landing-section-title">
+              Find any application <span className="landing-mark landing-mark-blue">in a second</span>
+            </h2>
             <p>
               Switch to the list view to filter by stage, see a count for each one, search by company, and sort by
               name or date.
@@ -353,7 +337,9 @@ export default function LandingPage() {
         <section className="landing-section landing-feature-row is-reversed">
           <div className="landing-feature-copy">
             <p className="landing-kicker">One-click updates</p>
-            <h2 className="landing-section-title">Heard back? Update it in one move</h2>
+            <h2 className="landing-section-title">
+              Heard back? Update it <span className="landing-mark landing-mark-green">in one move</span>
+            </h2>
             <p>
               Drag a card to the next column, or pick the new stage from its menu. The change saves in the background
               and the counts update right away.
@@ -362,17 +348,72 @@ export default function LandingPage() {
           <DragDemo />
         </section>
 
-        <section className="landing-section">
-          <div className="landing-cards">
-            {SMALL_FEATURES.map(({ icon, title, text }) => (
-              <div key={title} className="landing-card">
-                <span className="landing-card-icon" aria-hidden="true">
-                  <Icon name={icon} />
+        <section className="landing-section" aria-labelledby="details">
+          <p className="landing-kicker">The details</p>
+          <h2 id="details" className="landing-section-title">
+            Small things that make it easy to keep using
+          </h2>
+          <div className="bento">
+            <div className="bento-tile bento-phone landing-reveal">
+              <div className="bento-copy">
+                <span className="bento-icon bento-icon-blue" aria-hidden="true">
+                  <Icon name="phone" />
                 </span>
-                <h3>{title}</h3>
-                <p>{text}</p>
+                <h3>Works on your phone</h3>
+                <p>Update a status between classes. On small screens the board scrolls, and every card has a status menu.</p>
               </div>
-            ))}
+              <div className="bento-phone-frame" aria-hidden="true">
+                <span className="bento-phone-card is-applied">
+                  <b>Acme Corp</b>
+                  <span className="status-badge status-applied">Applied</span>
+                </span>
+                <span className="bento-phone-card is-interviewing">
+                  <b>Initech</b>
+                  <span className="status-badge status-interviewing">Interviewing</span>
+                </span>
+                <span className="bento-phone-card is-offer">
+                  <b>Hooli</b>
+                  <span className="status-badge status-offer">Offer</span>
+                </span>
+              </div>
+            </div>
+
+            <div className="bento-tile bento-wide landing-reveal">
+              <div className="bento-copy">
+                <span className="bento-icon bento-icon-green" aria-hidden="true">
+                  <Icon name="lock" />
+                </span>
+                <h3>Private by default</h3>
+                <p>Each account only sees its own applications. Passwords are stored as one-way bcrypt hashes, never as text.</p>
+              </div>
+              <div className="bento-hash" aria-hidden="true">
+                <span className="bento-hash-label">What gets stored</span>
+                <code>$2b$12$svSNzhgzA72VSdCpUL.bdeoAYWZMK9mCnIEyy4saYc</code>
+              </div>
+            </div>
+
+            <div className="bento-tile landing-reveal">
+              <div className="bento-copy">
+                <span className="bento-icon bento-icon-amber" aria-hidden="true">
+                  <Icon name="bolt" />
+                </span>
+                <h3>Fast to update</h3>
+                <p>Changes save in the background, so the board never makes you wait.</p>
+              </div>
+              <div className="bento-timeline" aria-hidden="true">
+                <span className="status-badge status-applied">Applied</span>
+                <span className="bento-arrow">→</span>
+                <span className="status-badge status-interviewing">Interviewing</span>
+                <span className="bento-arrow">→</span>
+                <span className="status-badge status-offer">Offer</span>
+              </div>
+            </div>
+
+            <div className="bento-tile bento-free landing-reveal">
+              <span className="bento-price">$0</span>
+              <h3>Free, for everyone</h3>
+              <p>No ads, no paid plan, no credit card.</p>
+            </div>
           </div>
         </section>
 
