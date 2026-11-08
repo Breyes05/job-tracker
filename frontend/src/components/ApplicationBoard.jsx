@@ -17,6 +17,9 @@ export default function ApplicationBoard({ applications, onStatusChange, onEdit 
 
   function handleDrop(event, status) {
     event.preventDefault()
+    // Clear the drag state here, not only in onDragEnd: moving the card to a new
+    // column removes the original element, so its dragend event never reaches React.
+    setDraggingId(null)
     setDropTarget(null)
     const id = Number(event.dataTransfer.getData('text/plain'))
     const application = applications.find((a) => a.id === id)
