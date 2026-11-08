@@ -195,7 +195,7 @@ const EYEBROW_MESSAGES = [
   'Switching careers? · Track every lead',
   'Free for everyone · No ads, no credit card',
 ]
-const EYEBROW_INTERVAL_MS = 3500
+const EYEBROW_INTERVAL_MS = 4500
 
 function RotatingEyebrow() {
   const [index, setIndex] = useState(0)
