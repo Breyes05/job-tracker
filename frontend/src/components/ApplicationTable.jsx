@@ -1,4 +1,4 @@
-import { STATUS_LABELS } from '../statuses.js'
+import StatusSelect from './StatusSelect.jsx'
 
 // Dates come from the API as "2026-10-24". Formatting them in UTC keeps the
 // day from shifting back by one in time zones west of UTC.
@@ -14,7 +14,7 @@ function formatDate(isoDate) {
 }
 
 // A table on wide screens; CSS turns each row into a card on phones.
-export default function ApplicationTable({ applications }) {
+export default function ApplicationTable({ applications, onStatusChange, onEdit, onDelete }) {
   return (
     <table className="app-table">
       <thead>
@@ -25,6 +25,9 @@ export default function ApplicationTable({ applications }) {
           <th scope="col">Applied</th>
           <th scope="col">Link</th>
           <th scope="col">Notes</th>
+          <th scope="col">
+            <span className="visually-hidden">Actions</span>
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -35,9 +38,7 @@ export default function ApplicationTable({ applications }) {
             </td>
             <td data-label="Role">{application.role}</td>
             <td data-label="Status">
-              <span className={`status-badge status-${application.status}`}>
-                {STATUS_LABELS[application.status]}
-              </span>
+              <StatusSelect application={application} onChange={onStatusChange} />
             </td>
             <td data-label="Applied" className="cell-date">
               {formatDate(application.date_applied)}
@@ -53,6 +54,18 @@ export default function ApplicationTable({ applications }) {
             </td>
             <td data-label="Notes" className="cell-notes" title={application.notes || undefined}>
               {application.notes || <span className="muted">—</span>}
+            </td>
+            <td className="cell-actions">
+              <button type="button" className="text-button" onClick={() => onEdit(application)}>
+                Edit
+              </button>
+              <button
+                type="button"
+                className="text-button text-button-danger"
+                onClick={() => onDelete(application)}
+              >
+                Delete
+              </button>
             </td>
           </tr>
         ))}
