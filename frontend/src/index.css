@@ -746,6 +746,183 @@ textarea[aria-invalid='true'] {
   }
 }
 
+/* Toolbar groups (view toggle + status tabs) */
+.toolbar-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+.dialog-delete {
+  margin-right: auto;
+}
+
+/* Board view: one column per status */
+.board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.board-column {
+  background: var(--subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  min-height: 160px;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.board-column.is-drop-target {
+  background: var(--applied-bg);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-ring);
+}
+.board-column-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 4px 12px;
+}
+.board-column-header h2 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.board-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.board-dot.status-applied,
+.board-dot.status-interviewing,
+.board-dot.status-offer,
+.board-dot.status-rejected {
+  background-color: currentColor;
+}
+.board-count {
+  margin-left: auto;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+.board-cards {
+  display: grid;
+  gap: 10px;
+}
+.board-empty {
+  margin: 0;
+  padding: 20px 8px;
+  text-align: center;
+  color: var(--faint);
+  font-size: 0.85rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+}
+
+.board-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  box-shadow: var(--shadow-sm);
+  cursor: grab;
+  transition: box-shadow 0.15s, border-color 0.15s, transform 0.15s;
+}
+.board-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+}
+.board-card.is-dragging {
+  opacity: 0.45;
+}
+.board-card:active {
+  cursor: grabbing;
+}
+.board-card-open {
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  cursor: inherit;
+}
+/* Stretch the button over the card so the whole card is clickable */
+.board-card-open::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+}
+.board-card-open:focus-visible {
+  outline: none;
+}
+.board-card-open:focus-visible::after {
+  box-shadow: 0 0 0 4px var(--accent-ring);
+}
+.board-card-role {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.board-card-notes {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.board-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+.board-card-date {
+  font-size: 0.8rem;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+/* Links and the dropdown sit above the stretched button so they stay clickable */
+.board-card-link,
+.board-card-status {
+  position: relative;
+  z-index: 1;
+}
+.board-card-link {
+  font-size: 0.8rem;
+}
+.board-card-status {
+  margin-left: auto;
+}
+
+/* Narrower screens: columns scroll sideways */
+@media (max-width: 1000px) {
+  .board {
+    grid-template-columns: repeat(4, 272px);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 8px;
+    margin-inline: -16px;
+    padding-inline: 16px;
+    scroll-padding-inline: 16px;
+  }
+  .board-column {
+    scroll-snap-align: start;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;

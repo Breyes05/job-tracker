@@ -21,7 +21,7 @@ function initialValues(application) {
 }
 
 // Add a new application, or edit an existing one when `application` is given.
-export default function ApplicationForm({ application, onSaved, onClose }) {
+export default function ApplicationForm({ application, onSaved, onClose, onDelete }) {
   const isNew = !application
   const [values, setValues] = useState(() => initialValues(application))
   const [fieldErrors, setFieldErrors] = useState({})
@@ -132,6 +132,15 @@ export default function ApplicationForm({ application, onSaved, onClose }) {
         )}
 
         <div className="dialog-actions">
+          {!isNew && onDelete && (
+            <button
+              type="button"
+              className="text-button text-button-danger dialog-delete"
+              onClick={() => onDelete(application)}
+            >
+              Delete
+            </button>
+          )}
           <button type="button" className="button button-quiet" onClick={onClose}>
             Cancel
           </button>

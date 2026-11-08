@@ -1,14 +1,26 @@
 import { useCallback, useEffect, useState } from 'react'
 import { apiRequest } from '../api.js'
 import AppHeader from '../components/AppHeader.jsx'
+import ApplicationBoard from '../components/ApplicationBoard.jsx'
 import ApplicationForm from '../components/ApplicationForm.jsx'
 import ApplicationTable from '../components/ApplicationTable.jsx'
 import ConfirmDelete from '../components/ConfirmDelete.jsx'
 import StatusTabs from '../components/StatusTabs.jsx'
 import Toast from '../components/Toast.jsx'
+import ViewToggle from '../components/ViewToggle.jsx'
 import { STATUS_LABELS } from '../statuses.js'
 
 const SEARCH_DELAY_MS = 300
+const VIEW_KEY = 'jobtracker.view'
+
+// Remember Board vs List between visits (storage can be blocked, so guard it).
+function savedView() {
+  try {
+    return localStorage.getItem(VIEW_KEY) === 'list' ? 'list' : 'board'
+  } catch {
+    return 'board'
+  }
+}
 
 export default function ApplicationsPage() {
   // What's typed in the search box, and the value actually sent to the API
@@ -16,6 +28,7 @@ export default function ApplicationsPage() {
   const [searchText, setSearchText] = useState('')
   const [company, setCompany] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [view, setView] = useState(savedView)
   const [reloadCount, setReloadCount] = useState(0)
 
   // The latest response, tagged with the request it answers.
@@ -53,6 +66,20 @@ export default function ApplicationsPage() {
       ignore = true
     }
   }, [company, requestKey])
+
+  function changeView(next) {
+    setView(next)
+    try {
+      localStorage.setItem(VIEW_KEY, next)
+    } catch {
+      // Not saved; the choice still applies until the page reloads.
+    }
+  }
+
+  function openDelete(application) {
+    setFormTarget(undefined)
+    setDeleteTarget(application)
+  }
 
   function reload() {
     setReloadCount((n) => n + 1)
@@ -107,8 +134,10 @@ export default function ApplicationsPage() {
   const { applications, error } = result
   const isFirstLoad = result.key === null
   const isRefreshing = !isFirstLoad && result.key !== requestKey
+  // The board shows every status as a column, so the status tabs only apply to the list.
+  const activeFilter = view === 'board' ? 'all' : statusFilter
   const visible =
-    statusFilter === 'all' ? applications : applications.filter((a) => a.status === statusFilter)
+    activeFilter === 'all' ? applications : applications.filter((a) => a.status === activeFilter)
 
   let content
   if (isFirstLoad) {
@@ -134,9 +163,17 @@ export default function ApplicationsPage() {
   } else if (visible.length === 0) {
     content = (
       <p className="page-message">
-        No {statusFilter === 'all' ? '' : `${STATUS_LABELS[statusFilter].toLowerCase()} `}
+        No {activeFilter === 'all' ? '' : `${STATUS_LABELS[activeFilter].toLowerCase()} `}
         applications{company ? ` matching “${company}”` : ''}.
       </p>
+    )
+  } else if (view === 'board') {
+    content = (
+      <ApplicationBoard
+        applications={visible}
+        onStatusChange={handleStatusChange}
+        onEdit={setFormTarget}
+      />
     )
   } else {
     content = (
@@ -144,7 +181,7 @@ export default function ApplicationsPage() {
         applications={visible}
         onStatusChange={handleStatusChange}
         onEdit={setFormTarget}
-        onDelete={setDeleteTarget}
+        onDelete={openDelete}
       />
     )
   }
@@ -161,7 +198,12 @@ export default function ApplicationsPage() {
         </div>
 
         <div className="toolbar">
-          <StatusTabs applications={applications} selected={statusFilter} onSelect={setStatusFilter} />
+          <div className="toolbar-group">
+            <ViewToggle view={view} onChange={changeView} />
+            {view === 'list' && (
+              <StatusTabs applications={applications} selected={statusFilter} onSelect={setStatusFilter} />
+            )}
+          </div>
           <div className="search">
             <label htmlFor="company-search" className="visually-hidden">
               Search by company
@@ -184,6 +226,7 @@ export default function ApplicationsPage() {
           application={formTarget}
           onSaved={handleSaved}
           onClose={() => setFormTarget(undefined)}
+          onDelete={openDelete}
         />
       )}
       {deleteTarget && (
