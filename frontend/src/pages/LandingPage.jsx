@@ -289,15 +289,6 @@ export default function LandingPage() {
             Track every application on one board, from the day you apply to the day you get the offer. No more
             spreadsheets or digging through your inbox.
           </p>
-          <div className="landing-ctas">
-            <Link to="/register" className="button button-large">
-              Get started for free
-            </Link>
-            <Link to="/login" className="button button-quiet button-large">
-              Log in
-            </Link>
-          </div>
-          <p className="landing-fine-print">No credit card. No ads.</p>
         </section>
 
         <section className="landing-showcase">
@@ -436,8 +427,9 @@ export default function LandingPage() {
           <h2>Start tracking your applications today</h2>
           <p>It’s free, and you can add your first application in under a minute.</p>
           <Link to="/register" className="button button-large button-on-dark">
-            Create your free account
+            Get started for free
           </Link>
+          <p className="landing-final-note">No credit card. No ads.</p>
         </section>
       </main>
 

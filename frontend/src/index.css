@@ -1145,24 +1145,12 @@ textarea[aria-invalid='true'] {
   font-size: 1.15rem;
   color: var(--muted);
   max-width: 580px;
-  margin: 0 auto 32px;
+  margin: 0 auto;
   text-wrap: pretty;
-}
-.landing-ctas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  justify-content: center;
 }
 .button-large {
   padding: 13px 22px;
   font-size: 1rem;
-}
-.landing-fine-print {
-  margin: 14px 0 0;
-  font-size: 0.85rem;
-  color: var(--faint);
 }
 
 /* Product preview */
@@ -1367,7 +1355,7 @@ textarea[aria-invalid='true'] {
   padding: 48px 0;
 }
 .landing-kicker {
-  margin: 0 0 10px;
+  margin: 0 0 16px;
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -1375,11 +1363,11 @@ textarea[aria-invalid='true'] {
   color: var(--accent);
 }
 .landing-section-title {
-  margin: 0 0 16px;
+  margin: 0 0 20px;
   font-size: clamp(1.6rem, 4vw, 2.25rem);
   font-weight: 700;
   letter-spacing: -0.03em;
-  line-height: 1.15;
+  line-height: 1.2;
   text-wrap: balance;
 }
 .landing-section > .landing-kicker,
@@ -1416,7 +1404,7 @@ textarea[aria-invalid='true'] {
   margin-bottom: 16px;
 }
 .landing-step h3 {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   font-size: 1.05rem;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -1440,6 +1428,7 @@ textarea[aria-invalid='true'] {
 }
 .landing-feature-copy p {
   font-size: 1.05rem;
+  line-height: 1.65;
   max-width: 440px;
 }
 .mock-panel {
@@ -1845,7 +1834,7 @@ textarea[aria-invalid='true'] {
   box-shadow: 0 20px 44px rgb(15 23 42 / 0.08);
 }
 .bento-tile h3 {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   font-size: 1.05rem;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -2055,7 +2044,7 @@ textarea[aria-invalid='true'] {
   box-shadow: 0 30px 80px rgb(47 91 255 / 0.25);
 }
 .landing-final h2 {
-  margin: 0 0 10px;
+  margin: 0 0 14px;
   font-size: clamp(1.6rem, 4vw, 2.25rem);
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -2064,6 +2053,11 @@ textarea[aria-invalid='true'] {
 .landing-final p {
   margin: 0 0 28px;
   color: rgb(255 255 255 / 0.85);
+}
+.landing-final .landing-final-note {
+  margin: 14px 0 0;
+  font-size: 0.85rem;
+  color: rgb(255 255 255 / 0.75);
 }
 .button-on-dark {
   background: #ffffff;
