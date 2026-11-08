@@ -22,13 +22,14 @@ function ConnectionProblem() {
   )
 }
 
-// Pages that need a logged-in user; everyone else goes to /login.
-export function RequireAuth({ children }) {
-  const { status } = useAuth()
+// The home page: the applications for a logged-in user, the landing page for
+// visitors. If a session just expired, go to /login so the message is shown.
+export function HomeRoute({ app, landing }) {
+  const { status, notice } = useAuth()
   if (status === 'checking') return <CheckingSession />
   if (status === 'error') return <ConnectionProblem />
-  if (status === 'signed-out') return <Navigate to="/login" replace />
-  return children
+  if (status === 'signed-out') return notice ? <Navigate to="/login" replace /> : landing
+  return app
 }
 
 // Login and register pages; logged-in users go straight to their applications.

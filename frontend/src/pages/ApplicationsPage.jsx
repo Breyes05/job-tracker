@@ -5,6 +5,7 @@ import ApplicationBoard from '../components/ApplicationBoard.jsx'
 import ApplicationForm from '../components/ApplicationForm.jsx'
 import ApplicationTable from '../components/ApplicationTable.jsx'
 import ConfirmDelete from '../components/ConfirmDelete.jsx'
+import { BoardSkeleton, TableSkeleton } from '../components/Skeletons.jsx'
 import StatusTabs from '../components/StatusTabs.jsx'
 import Toast from '../components/Toast.jsx'
 import ViewToggle from '../components/ViewToggle.jsx'
@@ -12,6 +13,7 @@ import { STATUS_LABELS } from '../statuses.js'
 
 const SEARCH_DELAY_MS = 300
 const VIEW_KEY = 'jobtracker.view'
+const NEWEST_FIRST = { sortBy: 'date_applied', order: 'desc' }
 
 // Remember Board vs List between visits (storage can be blocked, so guard it).
 function savedView() {
@@ -29,10 +31,13 @@ export default function ApplicationsPage() {
   const [company, setCompany] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [view, setView] = useState(savedView)
+  // List view can sort by column; the board always shows newest first.
+  const [listSort, setListSort] = useState(NEWEST_FIRST)
+  const sort = view === 'list' ? listSort : NEWEST_FIRST
   const [reloadCount, setReloadCount] = useState(0)
 
   // The latest response, tagged with the request it answers.
-  const requestKey = `${company}|${reloadCount}`
+  const requestKey = `${company}|${sort.sortBy}|${sort.order}|${reloadCount}`
   const [result, setResult] = useState({ key: null, applications: [], error: null })
 
   // Which dialog is open: the form (null application = adding) or delete confirmation.
@@ -50,7 +55,7 @@ export default function ApplicationsPage() {
   // filtering happens in the browser so every tab can show its count.
   useEffect(() => {
     let ignore = false
-    const params = new URLSearchParams({ limit: '200' })
+    const params = new URLSearchParams({ limit: '200', sort_by: sort.sortBy, order: sort.order })
     if (company) params.set('company', company)
 
     apiRequest(`/applications?${params}`).then(
@@ -65,7 +70,7 @@ export default function ApplicationsPage() {
     return () => {
       ignore = true
     }
-  }, [company, requestKey])
+  }, [company, sort.sortBy, sort.order, requestKey])
 
   function changeView(next) {
     setView(next)
@@ -74,6 +79,16 @@ export default function ApplicationsPage() {
     } catch {
       // Not saved; the choice still applies until the page reloads.
     }
+  }
+
+  // Clicking the sorted column flips the order; a new column starts with a
+  // sensible default (A to Z for company, newest first for dates).
+  function changeSort(sortBy) {
+    setListSort((current) =>
+      current.sortBy === sortBy
+        ? { sortBy, order: current.order === 'asc' ? 'desc' : 'asc' }
+        : { sortBy, order: sortBy === 'company' ? 'asc' : 'desc' },
+    )
   }
 
   function openDelete(application) {
@@ -141,7 +156,7 @@ export default function ApplicationsPage() {
 
   let content
   if (isFirstLoad) {
-    content = <p className="page-message">Loading your applications…</p>
+    content = view === 'board' ? <BoardSkeleton /> : <TableSkeleton />
   } else if (error) {
     content = (
       <div className="page-message">
@@ -182,6 +197,8 @@ export default function ApplicationsPage() {
         onStatusChange={handleStatusChange}
         onEdit={setFormTarget}
         onDelete={openDelete}
+        sort={listSort}
+        onSort={changeSort}
       />
     )
   }

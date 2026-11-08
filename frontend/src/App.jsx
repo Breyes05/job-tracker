@@ -1,8 +1,9 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import AuthProvider from './auth/AuthProvider.jsx'
-import { RedirectIfSignedIn, RequireAuth } from './components/RouteGuards.jsx'
+import { HomeRoute, RedirectIfSignedIn } from './components/RouteGuards.jsx'
 import SlowServerNotice from './components/SlowServerNotice.jsx'
 import ApplicationsPage from './pages/ApplicationsPage.jsx'
+import LandingPage from './pages/LandingPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 
@@ -12,14 +13,7 @@ export default function App() {
       <AuthProvider>
         <SlowServerNotice />
         <Routes>
-          <Route
-            path="/"
-            element={
-              <RequireAuth>
-                <ApplicationsPage />
-              </RequireAuth>
-            }
-          />
+          <Route path="/" element={<HomeRoute app={<ApplicationsPage />} landing={<LandingPage />} />} />
           <Route
             path="/login"
             element={

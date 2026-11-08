@@ -13,16 +13,32 @@ function formatDate(isoDate) {
   return dateFormat.format(new Date(`${isoDate}T00:00:00Z`))
 }
 
+// A column header that sorts the list when clicked.
+function SortableHeader({ label, field, sort, onSort }) {
+  const isSorted = sort.sortBy === field
+  const ariaSort = isSorted ? (sort.order === 'asc' ? 'ascending' : 'descending') : 'none'
+  return (
+    <th scope="col" aria-sort={ariaSort}>
+      <button type="button" className={`sort-button${isSorted ? ' is-sorted' : ''}`} onClick={() => onSort(field)}>
+        {label}
+        <span className="sort-arrow" aria-hidden="true">
+          {isSorted ? (sort.order === 'asc' ? '↑' : '↓') : '↕'}
+        </span>
+      </button>
+    </th>
+  )
+}
+
 // A table on wide screens; CSS turns each row into a card on phones.
-export default function ApplicationTable({ applications, onStatusChange, onEdit, onDelete }) {
+export default function ApplicationTable({ applications, onStatusChange, onEdit, onDelete, sort, onSort }) {
   return (
     <table className="app-table">
       <thead>
         <tr>
-          <th scope="col">Company</th>
+          <SortableHeader label="Company" field="company" sort={sort} onSort={onSort} />
           <th scope="col">Role</th>
           <th scope="col">Status</th>
-          <th scope="col">Applied</th>
+          <SortableHeader label="Applied" field="date_applied" sort={sort} onSort={onSort} />
           <th scope="col">Link</th>
           <th scope="col">Notes</th>
           <th scope="col">

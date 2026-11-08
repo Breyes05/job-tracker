@@ -86,6 +86,7 @@ export async function apiRequest(path, { method = 'GET', body, form, auth = true
   const headers = {}
   let payload
 
+  // form data
   if (form) {
     payload = new URLSearchParams(form)
   } else if (body !== undefined) {
@@ -93,15 +94,18 @@ export async function apiRequest(path, { method = 'GET', body, form, auth = true
     payload = JSON.stringify(body)
   }
 
+  // Every protected request proves who user is, if auth: false skip this for logins and registers
   const token = getToken()
   if (auth && token) headers.Authorization = `Bearer ${token}`
 
+  // slow request timer, to show app is still running
   let isSlow = false
   const slowTimer = setTimeout(() => {
     isSlow = true
     changeSlowCount(1)
   }, SLOW_REQUEST_MS)
 
+  // 
   let response
   try {
     response = await fetch(`${API_URL}${path}`, { method, headers, body: payload })
