@@ -4,7 +4,7 @@
 
 A web app for tracking job applications: where you applied, what stage you're at, and how your search is going. The focus of the project is the REST API behind it.
 
-- **Live app:** https://job-tracker-ebon-six-72.vercel.app
+- **Live app:** https://jobtracker-breyes.vercel.app
 - **Live API docs:** https://job-tracker-t7rk.onrender.com/docs
 
 The API runs on Render's free tier, so the first request after a quiet period can take 30 to 60 seconds while it wakes up.
