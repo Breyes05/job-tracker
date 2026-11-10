@@ -59,7 +59,7 @@ alembic upgrade head                                       # apply it
 ## Using the API
 1. Create an account with `POST /auth/register` (`{"email": "...", "password": "..."}`, password at least 8 characters).
 2. Click **Authorize** at the top of `/docs` and log in. Enter your email in the **username** field (that's the field name the OAuth2 standard uses).
-3. All `/applications` endpoints now send your token automatically. Tokens expire after 30 minutes; log in again to get a new one.
+3. All `/applications` endpoints now send your token automatically. Tokens expire after 7 days; log in again to get a new one.
 
 Outside `/docs`, log in with `POST /auth/login` (form fields `username` and `password`) and send the returned token on each request:
 ```
