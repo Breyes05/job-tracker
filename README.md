@@ -15,6 +15,7 @@ The API is built with **Python, FastAPI, SQLAlchemy, and PostgreSQL**, secured w
 - User accounts: register, log in, and get a JWT access token
 - Each user can only see and change their own applications
 - Passwords are hashed with bcrypt and never stored or returned in plain text
+- Login is rate limited: 5 failed attempts per email in 15 minutes, or 20 attempts per IP address per minute, returns `429` with a `Retry-After` header
 - Create, view, update, and delete job applications
 - Track status: `applied` → `interviewing` → `offer` / `rejected`
 - Filter by status or company name, sort by date or company, paginate results

@@ -8,6 +8,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.database import Base, get_db
 from app.main import app
+from app.rate_limit import failed_logins_by_email, login_attempts_by_ip
 
 
 @pytest.fixture
@@ -28,6 +29,9 @@ def client():
             db.close()
 
     app.dependency_overrides[get_db] = override_get_db
+    # Rate limits live in memory, so start every test with a clean slate.
+    failed_logins_by_email.clear()
+    login_attempts_by_ip.clear()
     yield TestClient(app)
     app.dependency_overrides.clear()
     Base.metadata.drop_all(bind=engine)
