@@ -5,6 +5,7 @@ import ApplicationBoard from '../components/ApplicationBoard.jsx'
 import ApplicationForm from '../components/ApplicationForm.jsx'
 import ApplicationTable from '../components/ApplicationTable.jsx'
 import ConfirmDelete from '../components/ConfirmDelete.jsx'
+import ImportDialog from '../components/ImportDialog.jsx'
 import { BoardSkeleton, TableSkeleton } from '../components/Skeletons.jsx'
 import StatsPanel from '../components/StatsPanel.jsx'
 import StatusTabs from '../components/StatusTabs.jsx'
@@ -44,6 +45,7 @@ export default function ApplicationsPage() {
   // Which dialog is open: the form (null application = adding) or delete confirmation.
   const [formTarget, setFormTarget] = useState(undefined)
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [showImport, setShowImport] = useState(false)
   const [toast, setToast] = useState(null)
   // Bumped after any change so the stats panel reloads.
   const [statsVersion, setStatsVersion] = useState(0)
@@ -93,6 +95,26 @@ export default function ApplicationsPage() {
         ? { sortBy, order: current.order === 'asc' ? 'desc' : 'asc' }
         : { sortBy, order: sortBy === 'company' ? 'asc' : 'desc' },
     )
+  }
+
+  async function handleExport() {
+    try {
+      const blob = await apiRequest('/applications/export', { asBlob: true })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `job-applications-${new Date().toISOString().slice(0, 10)}.csv`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      setToast({ text: `Couldn't export. ${error.message}`, isError: true })
+    }
+  }
+
+  function handleImported(count) {
+    reload()
+    refreshStats()
+    setToast({ text: `Imported ${count} application${count === 1 ? '' : 's'}.` })
   }
 
   function openDelete(application) {
@@ -176,10 +198,15 @@ export default function ApplicationsPage() {
   } else if (applications.length === 0 && !company) {
     content = (
       <div className="page-message">
-        <p>No applications yet. Add the first one you've applied to.</p>
-        <button type="button" className="button" onClick={() => setFormTarget(null)}>
-          Add application
-        </button>
+        <p>No applications yet. Add the first one you've applied to, or import a spreadsheet.</p>
+        <div className="button-row">
+          <button type="button" className="button" onClick={() => setFormTarget(null)}>
+            Add application
+          </button>
+          <button type="button" className="button button-quiet" onClick={() => setShowImport(true)}>
+            Import a spreadsheet
+          </button>
+        </div>
       </div>
     )
   } else if (visible.length === 0) {
@@ -216,9 +243,17 @@ export default function ApplicationsPage() {
       <main className="app-main">
         <div className="page-title-row">
           <h1>Applications</h1>
-          <button type="button" className="button" onClick={() => setFormTarget(null)}>
-            + Add application
-          </button>
+          <div className="page-actions">
+            <button type="button" className="button button-quiet" onClick={() => setShowImport(true)}>
+              Import
+            </button>
+            <button type="button" className="button button-quiet" onClick={handleExport} disabled={applications.length === 0}>
+              Export
+            </button>
+            <button type="button" className="button" onClick={() => setFormTarget(null)}>
+              + Add application
+            </button>
+          </div>
         </div>
 
         <StatsPanel refreshKey={`${statsVersion}|${reloadCount}`} />
@@ -262,6 +297,7 @@ export default function ApplicationsPage() {
           onClose={() => setDeleteTarget(null)}
         />
       )}
+      {showImport && <ImportDialog onImported={handleImported} onClose={() => setShowImport(false)} />}
       <Toast message={toast} onDone={clearToast} />
     </>
   )

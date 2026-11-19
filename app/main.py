@@ -5,7 +5,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import applications, auth, stats
+from app.routers import applications, auth, csv_io, stats
 
 # Frontends allowed to call this API from a browser. Defaults to the local
 # Vite dev server; production sets CORS_ORIGINS to the deployed frontend's URL.
@@ -24,6 +24,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Before the applications router: otherwise "/applications/export" would match
+# "/applications/{application_id}" and fail because "export" isn't a number.
+app.include_router(csv_io.router)
 app.include_router(applications.router)
 app.include_router(auth.router)
 app.include_router(stats.router)

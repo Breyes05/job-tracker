@@ -80,14 +80,20 @@ function readError(status, data) {
 /**
  * Send a request to the API.
  * - `body` is sent as JSON; `form` is sent as form data (used by login).
+ * - `file` is sent as a multipart upload (used by CSV import).
+ * - `asBlob: true` returns the raw response body, for downloads like CSV export.
  * - `auth: false` skips the token and the 401 handling (login and register).
  */
-export async function apiRequest(path, { method = 'GET', body, form, auth = true } = {}) {
+export async function apiRequest(path, { method = 'GET', body, form, file, asBlob = false, auth = true } = {}) {
   const headers = {}
   let payload
 
   // form data
-  if (form) {
+  if (file) {
+    // The browser sets the multipart Content-Type (with its boundary) itself.
+    payload = new FormData()
+    payload.append('file', file)
+  } else if (form) {
     payload = new URLSearchParams(form)
   } else if (body !== undefined) {
     headers['Content-Type'] = 'application/json'
@@ -127,5 +133,6 @@ export async function apiRequest(path, { method = 'GET', body, form, auth = true
   }
 
   if (response.status === 204) return null
+  if (asBlob) return response.blob()
   return response.json()
 }
