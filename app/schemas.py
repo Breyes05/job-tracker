@@ -58,6 +58,19 @@ class StatusEventRead(BaseModel):
     changed_at: datetime
 
 
+class ImportRowProblem(BaseModel):
+    row: int
+    message: str
+
+
+class ImportResult(BaseModel):
+    """What happened when a CSV was imported."""
+
+    imported: int
+    skipped: list[ImportRowProblem]
+    warnings: list[ImportRowProblem]
+
+
 class WeekCount(BaseModel):
     week_start: date
     count: int

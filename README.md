@@ -16,6 +16,7 @@ The API is built with **Python, FastAPI, SQLAlchemy, and PostgreSQL**, secured w
 - Each user can only see and change their own applications
 - Passwords are hashed with bcrypt and never stored or returned in plain text
 - Users can delete their account, which removes all of their applications and history
+- Import applications from a spreadsheet (CSV, with common column names recognized) and export them back to CSV
 - Login is rate limited: 5 failed attempts per email in 15 minutes, or 20 attempts per IP address per minute, returns `429` with a `Retry-After` header
 - Create, view, update, and delete job applications
 - Track status: `applied` → `interviewing` → `offer` / `rejected`
@@ -86,7 +87,7 @@ Authorization: Bearer <access_token>
 ```bash
 pytest
 ```
-The 63 tests cover the endpoints, registration and login, account deletion, rate limiting, status history, stats, invalid and missing tokens, CORS, and cross-user isolation (one user can't read, edit, or delete another user's applications). They run against a fresh in-memory SQLite database, so they don't need Postgres.
+The 74 tests cover the endpoints, registration and login, account deletion, CSV import and export, rate limiting, status history, stats, invalid and missing tokens, CORS, and cross-user isolation (one user can't read, edit, or delete another user's applications). They run against a fresh in-memory SQLite database, so they don't need Postgres.
 
 GitHub Actions runs the tests on every push to `main` and every pull request, along with a frontend job that installs, lints, and builds the React app. If the tests pass, it starts the full Docker Compose stack (Postgres and the API), checks `/health`, and registers a user, which only succeeds if the migrations ran against Postgres.
 
@@ -111,6 +112,8 @@ push → GitHub Actions (tests + Postgres smoke test) → merge to main → Rend
 | `POST` | `/applications` | ✅ | Create an application |
 | `GET` | `/applications` | ✅ | List your applications (`?status=`, `?company=`, `?sort_by=`, `?order=`, `?limit=`, `?offset=`) |
 | `GET` | `/applications/{id}` | ✅ | Get one of your applications |
+| `GET` | `/applications/export` | ✅ | Download all your applications as CSV |
+| `POST` | `/applications/import` | ✅ | Import applications from a CSV (Company and Role columns required) |
 | `GET` | `/applications/{id}/history` | ✅ | Every status change for an application, oldest first |
 | `PATCH` | `/applications/{id}` | ✅ | Update some fields of an application |
 | `DELETE` | `/applications/{id}` | ✅ | Delete an application |
