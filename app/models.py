@@ -37,7 +37,10 @@ class Application(Base):
     # relationship is a python shortcut
     owner: Mapped["User"] = relationship(back_populates="applications")
     events: Mapped[list["StatusEvent"]] = relationship(
-        back_populates="application", cascade="all, delete-orphan", order_by="StatusEvent.changed_at"
+        back_populates="application",
+        cascade="all, delete-orphan",
+        # Oldest first; id breaks ties between events saved in the same instant.
+        order_by=lambda: (StatusEvent.changed_at, StatusEvent.id),
     )
 
 class User(Base):
