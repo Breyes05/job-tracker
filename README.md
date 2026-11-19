@@ -85,9 +85,17 @@ Authorization: Bearer <access_token>
 ```bash
 pytest
 ```
-The 58 tests cover the endpoints, registration and login, rate limiting, status history, stats, invalid and missing tokens, CORS, and cross-user isolation (one user can't read, edit, or delete another user's applications). They run against a fresh in-memory SQLite database, so they don't need Postgres.
+The 58 tests cover the endpoints, registration and login, rate limiting, status history, stats, invalid and missing tokens, CORS, and cross-user isolation (one user can't read, edit, or delete another user's applications). Each test gets a fresh database. By default that's in-memory SQLite, so plain `pytest` needs no setup.
 
-GitHub Actions runs the tests on every push to `main` and every pull request, along with a frontend job that installs, lints, and builds the React app. If the tests pass, it starts the full Docker Compose stack (Postgres and the API), checks `/health`, and registers a user, which only succeeds if the migrations ran against Postgres.
+To run the same tests against Postgres (the database production uses), point `TEST_DATABASE_URL` at a database whose name ends in `_test`:
+```bash
+docker compose up -d db
+docker compose exec db createdb -U jobtracker jobtracker_test   # once
+TEST_DATABASE_URL=postgresql+psycopg://jobtracker:jobtracker@localhost:5432/jobtracker_test pytest
+```
+Tests drop every table when they finish, so they refuse to run against a database whose name doesn't end in `_test`.
+
+GitHub Actions runs the suite on every push to `main` and every pull request, twice in parallel: on SQLite and on a Postgres 17 service container. It also installs, lints, and builds the React app. If the tests pass, it starts the full Docker Compose stack (Postgres and the API), checks `/health`, and registers a user, which only succeeds if the migrations ran against Postgres.
 
 ## Deployment
 Every merge to `main` deploys automatically:
