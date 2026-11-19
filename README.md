@@ -18,6 +18,7 @@ The API is built with **Python, FastAPI, SQLAlchemy, and PostgreSQL**, secured w
 - Login is rate limited: 5 failed attempts per email in 15 minutes, or 20 attempts per IP address per minute, returns `429` with a `Retry-After` header
 - Create, view, update, and delete job applications
 - Track status: `applied` → `interviewing` → `offer` / `rejected`
+- Every status change is recorded with a timestamp; quickly undoing a change (within 5 minutes) is treated as a correction, not history
 - Filter by status or company name, sort by date or company, paginate results
 - Input validation (required fields, valid emails and URLs, valid statuses) with clear error messages
 - Interactive API docs generated automatically at `/docs`
@@ -83,7 +84,7 @@ Authorization: Bearer <access_token>
 ```bash
 pytest
 ```
-The 32 tests cover the endpoints, registration and login, invalid and missing tokens, CORS, and cross-user isolation (one user can't read, edit, or delete another user's applications). They run against a fresh in-memory SQLite database, so they don't need Postgres.
+The 49 tests cover the endpoints, registration and login, rate limiting, status history, invalid and missing tokens, CORS, and cross-user isolation (one user can't read, edit, or delete another user's applications). They run against a fresh in-memory SQLite database, so they don't need Postgres.
 
 GitHub Actions runs the tests on every push to `main` and every pull request, along with a frontend job that installs, lints, and builds the React app. If the tests pass, it starts the full Docker Compose stack (Postgres and the API), checks `/health`, and registers a user, which only succeeds if the migrations ran against Postgres.
 
@@ -107,6 +108,7 @@ push → GitHub Actions (tests + Postgres smoke test) → merge to main → Rend
 | `POST` | `/applications` | ✅ | Create an application |
 | `GET` | `/applications` | ✅ | List your applications (`?status=`, `?company=`, `?sort_by=`, `?order=`, `?limit=`, `?offset=`) |
 | `GET` | `/applications/{id}` | ✅ | Get one of your applications |
+| `GET` | `/applications/{id}/history` | ✅ | Every status change for an application, oldest first |
 | `PATCH` | `/applications/{id}` | ✅ | Update some fields of an application |
 | `DELETE` | `/applications/{id}` | ✅ | Delete an application |
 | `GET` | `/health` | | Health check |

@@ -48,6 +48,16 @@ class ApplicationRead(ApplicationBase):
     updated_at: datetime
 
 
+class StatusEventRead(BaseModel):
+    """One entry in an application's status history."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    from_status: Status | None
+    to_status: Status
+    changed_at: datetime
+
+
 class UserBase(BaseModel):
     email: EmailStr
 

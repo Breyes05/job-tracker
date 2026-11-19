@@ -36,6 +36,12 @@ class Application(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     # relationship is a python shortcut
     owner: Mapped["User"] = relationship(back_populates="applications")
+    events: Mapped[list["StatusEvent"]] = relationship(
+        back_populates="application",
+        cascade="all, delete-orphan",
+        # Oldest first; id breaks ties between events saved in the same instant.
+        order_by=lambda: (StatusEvent.changed_at, StatusEvent.id),
+    )
 
 class User(Base):
     __tablename__ = "users"
@@ -45,3 +51,14 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     applications: Mapped[list["Application"]] = relationship(back_populates="owner")
+
+class StatusEvent(Base):
+    __tablename__ = "status_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    application_id: Mapped[int] = mapped_column(ForeignKey("applications.id"), index=True)
+    from_status: Mapped[Status | None] = mapped_column(Enum(Status))
+    to_status: Mapped[Status] = mapped_column(Enum(Status))
+    changed_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    
+    application: Mapped["Application"] = relationship(back_populates="events")
