@@ -6,6 +6,7 @@ import ApplicationForm from '../components/ApplicationForm.jsx'
 import ApplicationTable from '../components/ApplicationTable.jsx'
 import ConfirmDelete from '../components/ConfirmDelete.jsx'
 import { BoardSkeleton, TableSkeleton } from '../components/Skeletons.jsx'
+import StatsPanel from '../components/StatsPanel.jsx'
 import StatusTabs from '../components/StatusTabs.jsx'
 import Toast from '../components/Toast.jsx'
 import ViewToggle from '../components/ViewToggle.jsx'
@@ -44,6 +45,9 @@ export default function ApplicationsPage() {
   const [formTarget, setFormTarget] = useState(undefined)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [toast, setToast] = useState(null)
+  // Bumped after any change so the stats panel reloads.
+  const [statsVersion, setStatsVersion] = useState(0)
+  const refreshStats = () => setStatsVersion((n) => n + 1)
   const clearToast = useCallback(() => setToast(null), [])
 
   useEffect(() => {
@@ -116,6 +120,7 @@ export default function ApplicationsPage() {
         body: { status },
       })
       updateLocal(application.id, saved)
+      refreshStats()
       setToast({ text: `${application.company} moved to ${STATUS_LABELS[status]}.` })
     } catch (error) {
       updateLocal(application.id, { status: application.status })
@@ -125,6 +130,7 @@ export default function ApplicationsPage() {
 
   function handleSaved(saved, isNew) {
     setFormTarget(undefined)
+    refreshStats()
     if (isNew) {
       // Reload so the new application lands in the right place and counts.
       reload()
@@ -143,6 +149,7 @@ export default function ApplicationsPage() {
       applications: current.applications.filter((a) => a.id !== id),
     }))
     setDeleteTarget(null)
+    refreshStats()
     setToast({ text: `Deleted ${name}.` })
   }
 
@@ -213,6 +220,8 @@ export default function ApplicationsPage() {
             + Add application
           </button>
         </div>
+
+        <StatsPanel refreshKey={`${statsVersion}|${reloadCount}`} />
 
         <div className="toolbar">
           <div className="toolbar-group">
