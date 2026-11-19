@@ -97,6 +97,19 @@ class UserBase(BaseModel):
     email: EmailStr
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(min_length=1, max_length=200)
+    password: str = Field(min_length=8, max_length=72)
+
+
+class Message(BaseModel):
+    detail: str
+
+
 class PasswordConfirm(BaseModel):
     """The current password, required before destructive account actions."""
 

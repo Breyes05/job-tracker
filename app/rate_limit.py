@@ -57,3 +57,8 @@ class RateLimiter:
 failed_logins_by_email = RateLimiter(max_attempts=5, window_seconds=15 * 60)
 # Stops one client from trying many accounts quickly.
 login_attempts_by_ip = RateLimiter(max_attempts=20, window_seconds=60)
+# Password reset emails: limits spam to one inbox and from one client.
+reset_requests_by_email = RateLimiter(max_attempts=3, window_seconds=60 * 60)
+reset_requests_by_ip = RateLimiter(max_attempts=10, window_seconds=60 * 60)
+
+ALL_LIMITERS = [failed_logins_by_email, login_attempts_by_ip, reset_requests_by_email, reset_requests_by_ip]

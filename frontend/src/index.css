@@ -236,6 +236,27 @@ textarea[aria-invalid='true'] {
   font-size: 0.9rem;
 }
 
+.forgot-link {
+  justify-self: end;
+  font-size: 0.85rem;
+}
+.auth-intro {
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.notice-success {
+  background: var(--offer-bg);
+  color: var(--offer);
+}
+.auth-cta {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}
+.auth-cta:hover {
+  text-decoration: none;
+}
 .notice {
   background: var(--notice-bg);
   color: var(--notice-text);
