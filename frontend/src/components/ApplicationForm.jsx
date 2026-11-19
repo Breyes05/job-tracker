@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { apiRequest } from '../api.js'
 import { STATUSES } from '../statuses.js'
 import Dialog from './Dialog.jsx'
+import StatusTimeline from './StatusTimeline.jsx'
 
 // Today's date as "YYYY-MM-DD" in the user's own time zone.
 function todayLocal() {
@@ -124,6 +125,8 @@ export default function ApplicationForm({ application, onSaved, onClose, onDelet
             {fieldError('notes')}
           </div>
         </div>
+
+        {!isNew && <StatusTimeline applicationId={application.id} />}
 
         {error && (
           <p className="form-error" role="alert">
