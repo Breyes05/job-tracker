@@ -1,10 +1,10 @@
 """CRUD endpoints for job applications."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
@@ -31,6 +31,10 @@ def to_db_values(data: dict) -> dict:
 # A change that exactly undoes the previous one within this window is treated as
 # a correction (a misclick or a drag into the wrong column), not as history.
 CORRECTION_WINDOW = timedelta(minutes=5)
+
+# An application still in Applied this long after applying (or after the last
+# follow-up) is worth a nudge.
+FOLLOW_UP_AFTER = timedelta(days=14)
 
 
 def utcnow() -> datetime:
@@ -109,6 +113,42 @@ def list_applications(
     query = query.order_by(column.desc() if order == "desc" else column.asc())
     query = query.limit(limit).offset(offset)
     return db.scalars(query).all()
+
+
+# Defined before "/{application_id}" so "follow-ups" isn't read as an id.
+@router.get("/follow-ups", response_model=list[ApplicationRead])
+def list_follow_ups(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Applications still in Applied two weeks after applying and after any previous follow-up, oldest first."""
+    cutoff = utcnow() - FOLLOW_UP_AFTER
+    query = (
+        select(Application)
+        .where(
+            Application.user_id == current_user.id,
+            Application.status == Status.APPLIED,
+            Application.date_applied <= date.today() - FOLLOW_UP_AFTER,
+            or_(Application.followed_up_at.is_(None), Application.followed_up_at <= cutoff),
+        )
+        .order_by(Application.date_applied.asc(), Application.id.asc())
+        .limit(50)
+    )
+    return db.scalars(query).all()
+
+
+@router.post("/{application_id}/follow-up", response_model=ApplicationRead)
+def mark_followed_up(
+    application_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Record that the user followed up, which hides the reminder for another two weeks."""
+    application = get_application_or_404(application_id, db, current_user)
+    application.followed_up_at = utcnow()
+    db.commit()
+    db.refresh(application)
+    return application
 
 
 @router.get("/{application_id}", response_model=ApplicationRead)
