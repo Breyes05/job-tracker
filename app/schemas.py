@@ -58,6 +58,27 @@ class StatusEventRead(BaseModel):
     changed_at: datetime
 
 
+class WeekCount(BaseModel):
+    week_start: date
+    count: int
+
+
+class StatsRead(BaseModel):
+    """Summary of the current user's job search."""
+
+    total: int
+    responded: int
+    interviewed: int
+    offers: int
+    rejected: int
+    # Shares of `total` from 0 to 1, or null when there are no applications yet.
+    response_rate: float | None
+    interview_rate: float | None
+    offer_rate: float | None
+    median_days_to_response: float | None
+    weekly: list[WeekCount]
+
+
 class UserBase(BaseModel):
     email: EmailStr
 

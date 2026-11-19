@@ -19,6 +19,7 @@ The API is built with **Python, FastAPI, SQLAlchemy, and PostgreSQL**, secured w
 - Create, view, update, and delete job applications
 - Track status: `applied` → `interviewing` → `offer` / `rejected`
 - Every status change is recorded with a timestamp; quickly undoing a change (within 5 minutes) is treated as a correction, not history
+- Stats computed from that history: response rate, interview rate, offers, median time to first response, and applications per week
 - Filter by status or company name, sort by date or company, paginate results
 - Input validation (required fields, valid emails and URLs, valid statuses) with clear error messages
 - Interactive API docs generated automatically at `/docs`
@@ -84,7 +85,7 @@ Authorization: Bearer <access_token>
 ```bash
 pytest
 ```
-The 49 tests cover the endpoints, registration and login, rate limiting, status history, invalid and missing tokens, CORS, and cross-user isolation (one user can't read, edit, or delete another user's applications). They run against a fresh in-memory SQLite database, so they don't need Postgres.
+The 58 tests cover the endpoints, registration and login, rate limiting, status history, stats, invalid and missing tokens, CORS, and cross-user isolation (one user can't read, edit, or delete another user's applications). They run against a fresh in-memory SQLite database, so they don't need Postgres.
 
 GitHub Actions runs the tests on every push to `main` and every pull request, along with a frontend job that installs, lints, and builds the React app. If the tests pass, it starts the full Docker Compose stack (Postgres and the API), checks `/health`, and registers a user, which only succeeds if the migrations ran against Postgres.
 
@@ -111,6 +112,7 @@ push → GitHub Actions (tests + Postgres smoke test) → merge to main → Rend
 | `GET` | `/applications/{id}/history` | ✅ | Every status change for an application, oldest first |
 | `PATCH` | `/applications/{id}` | ✅ | Update some fields of an application |
 | `DELETE` | `/applications/{id}` | ✅ | Delete an application |
+| `GET` | `/stats` | ✅ | Response rate, interview rate, offers, median days to first response, applications per week |
 | `GET` | `/health` | | Health check |
 
 Requests without a valid token get `401`. Requests for another user's application get `404`.
