@@ -15,6 +15,7 @@ The API is built with **Python, FastAPI, SQLAlchemy, and PostgreSQL**, secured w
 - User accounts: register, log in, and get a JWT access token
 - Each user can only see and change their own applications
 - Passwords are hashed with bcrypt and never stored or returned in plain text
+- Users can delete their account, which removes all of their applications and history
 - Login is rate limited: 5 failed attempts per email in 15 minutes, or 20 attempts per IP address per minute, returns `429` with a `Retry-After` header
 - Create, view, update, and delete job applications
 - Track status: `applied` → `interviewing` → `offer` / `rejected`
@@ -85,7 +86,7 @@ Authorization: Bearer <access_token>
 ```bash
 pytest
 ```
-The 58 tests cover the endpoints, registration and login, rate limiting, status history, stats, invalid and missing tokens, CORS, and cross-user isolation (one user can't read, edit, or delete another user's applications). They run against a fresh in-memory SQLite database, so they don't need Postgres.
+The 63 tests cover the endpoints, registration and login, account deletion, rate limiting, status history, stats, invalid and missing tokens, CORS, and cross-user isolation (one user can't read, edit, or delete another user's applications). They run against a fresh in-memory SQLite database, so they don't need Postgres.
 
 GitHub Actions runs the tests on every push to `main` and every pull request, along with a frontend job that installs, lints, and builds the React app. If the tests pass, it starts the full Docker Compose stack (Postgres and the API), checks `/health`, and registers a user, which only succeeds if the migrations ran against Postgres.
 
@@ -106,6 +107,7 @@ push → GitHub Actions (tests + Postgres smoke test) → merge to main → Rend
 | `POST` | `/auth/register` | | Create an account |
 | `POST` | `/auth/login` | | Log in and get an access token |
 | `GET` | `/auth/me` | ✅ | Get the logged-in user |
+| `DELETE` | `/auth/me` | ✅ | Delete your account and all your data (requires your password) |
 | `POST` | `/applications` | ✅ | Create an application |
 | `GET` | `/applications` | ✅ | List your applications (`?status=`, `?company=`, `?sort_by=`, `?order=`, `?limit=`, `?offset=`) |
 | `GET` | `/applications/{id}` | ✅ | Get one of your applications |

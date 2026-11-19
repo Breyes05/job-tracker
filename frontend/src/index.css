@@ -800,6 +800,42 @@ textarea[aria-invalid='true'] {
   }
 }
 
+/* Account dialog */
+.danger-zone {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid #fecdca;
+  border-radius: var(--radius);
+  background: #fffbfa;
+}
+.danger-zone h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--danger);
+}
+.danger-zone p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.danger-zone form {
+  display: grid;
+}
+.danger-zone .dialog-actions {
+  margin-top: 0;
+}
+.button-danger-outline {
+  justify-self: start;
+  background: var(--surface);
+  color: var(--danger);
+  border-color: #fda29b;
+}
+.button-danger-outline:hover {
+  background: #fef3f2;
+  border-color: var(--danger);
+}
+
 /* Status history in the edit dialog */
 .timeline {
   margin: 4px 0 20px;

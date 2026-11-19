@@ -83,6 +83,12 @@ class UserBase(BaseModel):
     email: EmailStr
 
 
+class PasswordConfirm(BaseModel):
+    """The current password, required before destructive account actions."""
+
+    password: str = Field(min_length=1, max_length=72)
+
+
 class UserCreate(UserBase):
     """What a client sends to create a user."""
     password: str = Field(min_length=8, max_length=72)
