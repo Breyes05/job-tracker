@@ -113,6 +113,12 @@ The expiration started at 30 minutes, which was fine for the API alone but logge
 **Why:** Stats need the history, which the application list doesn't include. Rates use "ever reached" a status, so moving a card back doesn't erase progress that happened; reaching Offer counts as an interview even if the card skipped the column. Response time only counts moves recorded from Applied, so applications added after hearing back (or backfilled) don't invent response times. The median is in Python because SQL's median (`percentile_cont`) is Postgres-only and the tests run on SQLite; the same goes for grouping by week (`date_trunc`). The number of rows per user is small, so this costs little.
 **Trade-off:** Stats are computed on every request instead of cached, which is fine at this size but would need caching or pre-aggregation with many users. `changed_at` is UTC while `date_applied` is the user's local date, so a response time can be off by a day near midnight.
 
+## 20. Run the test suite on both SQLite and Postgres
+**Chose:** Tests use in-memory SQLite by default and Postgres when `TEST_DATABASE_URL` is set; CI runs the full suite on both in parallel, using a Postgres 17 service container
+**Alternatives:** SQLite only, Postgres only, mocking the database
+**Why:** Production runs on Postgres, and the two databases differ in ways this app depends on: SQLite doesn't enforce foreign keys by default, stores enums as plain text, is loose about column types, and lacks some functions. A bug could pass every SQLite test and still fail in production. Running both keeps `pytest` fast and setup-free on a laptop while CI checks the real database. The Docker smoke test only proved the app starts and migrates; this runs every feature against Postgres.
+**Trade-off:** CI does twice the test work (in parallel, so it barely adds time). Each test creates and drops all tables, which is slower on Postgres than in memory. Because tests drop every table, conftest refuses to run unless the database name ends in `_test`, so they can't wipe a development or production database by accident.
+
 ## 21. Account deletion requires the current password
 **Chose:** `DELETE /auth/me` with the current password in the body; deleting the user cascades to their applications and, through those, their status history
 **Alternatives:** Deleting with just a valid token, soft deletion (marking the account deleted but keeping the rows)
