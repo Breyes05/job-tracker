@@ -50,7 +50,8 @@ class User(Base):
     email: Mapped[str] = mapped_column(unique=True, index=True)
     hashed_password: Mapped[str] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-    applications: Mapped[list["Application"]] = relationship(back_populates="owner")
+    # Deleting a user deletes their applications (and, through those, their history).
+    applications: Mapped[list["Application"]] = relationship(back_populates="owner", cascade="all, delete-orphan")
 
 class StatusEvent(Base):
     __tablename__ = "status_events"
