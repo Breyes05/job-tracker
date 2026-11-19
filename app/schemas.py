@@ -46,6 +46,7 @@ class ApplicationRead(ApplicationBase):
     job_url: str | None = None
     created_at: datetime
     updated_at: datetime
+    followed_up_at: datetime | None = None
 
 
 class StatusEventRead(BaseModel):

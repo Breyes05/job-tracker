@@ -32,6 +32,8 @@ class Application(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now()
     )
+    # When the user last marked this application as followed up (UTC), if ever.
+    followed_up_at: Mapped[datetime | None] = mapped_column(DateTime)
     # maps to users table id column
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     # relationship is a python shortcut

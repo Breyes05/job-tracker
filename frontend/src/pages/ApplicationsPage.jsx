@@ -5,6 +5,7 @@ import ApplicationBoard from '../components/ApplicationBoard.jsx'
 import ApplicationForm from '../components/ApplicationForm.jsx'
 import ApplicationTable from '../components/ApplicationTable.jsx'
 import ConfirmDelete from '../components/ConfirmDelete.jsx'
+import FollowUpBanner from '../components/FollowUpBanner.jsx'
 import ImportDialog from '../components/ImportDialog.jsx'
 import { BoardSkeleton, TableSkeleton } from '../components/Skeletons.jsx'
 import StatsPanel from '../components/StatsPanel.jsx'
@@ -257,6 +258,12 @@ export default function ApplicationsPage() {
         </div>
 
         <StatsPanel refreshKey={`${statsVersion}|${reloadCount}`} />
+
+        <FollowUpBanner
+          refreshKey={`${statsVersion}|${reloadCount}`}
+          onOpen={setFormTarget}
+          onFollowedUp={(application) => setToast({ text: `Marked ${application.company} as followed up.` })}
+        />
 
         <div className="toolbar">
           <div className="toolbar-group">
