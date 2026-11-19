@@ -16,7 +16,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.database import Base, get_db
 from app.main import app
-from app.rate_limit import failed_logins_by_email, login_attempts_by_ip
+from app.rate_limit import ALL_LIMITERS
 
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 
@@ -53,8 +53,8 @@ def client():
 
     app.dependency_overrides[get_db] = override_get_db
     # Rate limits live in memory, so start every test with a clean slate.
-    failed_logins_by_email.clear()
-    login_attempts_by_ip.clear()
+    for limiter in ALL_LIMITERS:
+        limiter.clear()
     try:
         yield TestClient(app)
     finally:

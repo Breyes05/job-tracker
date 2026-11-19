@@ -38,8 +38,10 @@ def verify_password(password: str, hashed: str) -> bool:
 
 def create_access_token(user_id: int) -> str:
     sub = str(user_id)
-    exp = datetime.now(timezone.utc) + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
-    payload = {"sub": sub, "exp": exp}
+    now = datetime.now(timezone.utc)
+    exp = now + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
+    # iat ("issued at") lets us reject tokens created before a password change.
+    payload = {"sub": sub, "iat": int(now.timestamp()), "exp": exp}
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
@@ -57,10 +59,16 @@ def get_current_user(
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = int(payload["sub"])
-    except (jwt.InvalidTokenError, KeyError, ValueError):
+        issued_at = int(payload.get("iat", 0))
+    except (jwt.InvalidTokenError, KeyError, ValueError, TypeError):
         raise credentials_error
 
     user = db.get(User, user_id)
     if user is None:
         raise credentials_error
+    # A token from before the latest password change is no longer valid.
+    if user.password_changed_at is not None:
+        changed_at = int(user.password_changed_at.replace(tzinfo=timezone.utc).timestamp())
+        if issued_at < changed_at:
+            raise credentials_error
     return user

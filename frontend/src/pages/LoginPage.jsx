@@ -22,6 +22,11 @@ export default function LoginPage() {
       busyLabel="Logging in…"
       onSubmit={handleLogin}
       notice={notice}
+      passwordExtra={
+        <Link to="/forgot-password" className="forgot-link">
+          Forgot password?
+        </Link>
+      }
       footer={
         <>
           New here? <Link to="/register">Create an account</Link>

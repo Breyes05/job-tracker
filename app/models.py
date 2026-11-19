@@ -52,8 +52,12 @@ class User(Base):
     email: Mapped[str] = mapped_column(unique=True, index=True)
     hashed_password: Mapped[str] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    # When the password was last changed (UTC, whole seconds). Tokens issued
+    # before this are rejected, so a reset logs out every other session.
+    password_changed_at: Mapped[datetime | None] = mapped_column(DateTime)
     # Deleting a user deletes their applications (and, through those, their history).
     applications: Mapped[list["Application"]] = relationship(back_populates="owner", cascade="all, delete-orphan")
+    reset_tokens: Mapped[list["PasswordResetToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 class StatusEvent(Base):
     __tablename__ = "status_events"
@@ -65,3 +69,18 @@ class StatusEvent(Base):
     changed_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     
     application: Mapped["Application"] = relationship(back_populates="events")
+
+
+class PasswordResetToken(Base):
+    """A single-use password reset link. Only a hash of the token is stored."""
+
+    __tablename__ = "password_reset_tokens"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    user: Mapped["User"] = relationship(back_populates="reset_tokens")

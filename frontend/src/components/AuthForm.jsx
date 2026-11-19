@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 
 // Shared layout for the login and register pages.
-export default function AuthForm({ title, submitLabel, busyLabel, onSubmit, notice, footer, passwordHint }) {
+export default function AuthForm({ title, submitLabel, busyLabel, onSubmit, notice, footer, passwordHint, passwordExtra }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -60,6 +60,7 @@ export default function AuthForm({ title, submitLabel, busyLabel, onSubmit, noti
               required
             />
             {passwordHint && !fieldErrors.password && <p className="field-hint">{passwordHint}</p>}
+            {passwordExtra}
             {fieldErrors.password && <p className="field-error">{fieldErrors.password}</p>}
           </div>
 

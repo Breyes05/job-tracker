@@ -15,6 +15,7 @@ The API is built with **Python, FastAPI, SQLAlchemy, and PostgreSQL**, secured w
 - User accounts: register, log in, and get a JWT access token
 - Each user can only see and change their own applications
 - Passwords are hashed with bcrypt and never stored or returned in plain text
+- Forgot-password emails with single-use links that expire in an hour; resetting logs out every other session
 - Users can delete their account, which removes all of their applications and history
 - Import applications from a spreadsheet (CSV, with common column names recognized) and export them back to CSV
 - Follow-up reminders for applications that haven't heard back in two weeks
@@ -88,7 +89,7 @@ Authorization: Bearer <access_token>
 ```bash
 pytest
 ```
-The 79 tests cover the endpoints, registration and login, account deletion, CSV import and export, follow-up reminders, rate limiting, status history, stats, invalid and missing tokens, CORS, and cross-user isolation (one user can't read, edit, or delete another user's applications). They run against a fresh in-memory SQLite database, so they don't need Postgres.
+The 88 tests cover the endpoints, registration and login, password reset, account deletion, CSV import and export, follow-up reminders, rate limiting, status history, stats, invalid and missing tokens, CORS, and cross-user isolation (one user can't read, edit, or delete another user's applications). They run against a fresh in-memory SQLite database, so they don't need Postgres.
 
 GitHub Actions runs the tests on every push to `main` and every pull request, along with a frontend job that installs, lints, and builds the React app. If the tests pass, it starts the full Docker Compose stack (Postgres and the API), checks `/health`, and registers a user, which only succeeds if the migrations ran against Postgres.
 
@@ -102,12 +103,15 @@ push → GitHub Actions (tests + Postgres smoke test) → merge to main → Rend
 - **API:** [Render](https://render.com) web service, built from the `Dockerfile`, with the health check path set to `/health`
 - **Database:** [Neon](https://neon.tech) serverless Postgres
 - **Configuration:** `DATABASE_URL` (the Neon connection string, starting with `postgresql+psycopg://`), `SECRET_KEY`, and `CORS_ORIGINS` (the Vercel URL, so browsers allow the frontend to call the API) are set as environment variables in Render's dashboard and are never committed
+- **Email (password reset):** `FRONTEND_URL` (where reset links point) and `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM`. Without `SMTP_HOST`, emails are written to the server log instead, which is handy locally.
 
 ## API overview
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
 | `POST` | `/auth/register` | | Create an account |
 | `POST` | `/auth/login` | | Log in and get an access token |
+| `POST` | `/auth/forgot-password` | | Email a single-use reset link (same response whether or not the account exists) |
+| `POST` | `/auth/reset-password` | | Set a new password with a reset link's token; logs out other sessions |
 | `GET` | `/auth/me` | ✅ | Get the logged-in user |
 | `DELETE` | `/auth/me` | ✅ | Delete your account and all your data (requires your password) |
 | `POST` | `/applications` | ✅ | Create an application |
